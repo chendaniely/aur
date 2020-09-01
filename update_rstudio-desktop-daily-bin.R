@@ -6,33 +6,17 @@ library(fs)
 library(digest)
 library(glue)
 
+source("helper.R")
+
 url_rstudio_daily <- "https://dailies.rstudio.com/"
 url_pkgbuild <- "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=rstudio-desktop-daily-bin"
 
+pkgbuild_name_version <- get_pkgbuild_name_version(url_pkgbuild)
 
-## Read pkgbuild file from AUR
-pth_pkgfile <- tempfile()
-
-download.file(url_pkgbuild, destfile = pth_pkgfile)
-
-pkgbuild <- readLines(pth_pkgfile)
-
-pkgversion <- pkgbuild[stringr::str_detect(pkgbuild, "pkgname=|pkgver=")]
-
-stopifnot(length(pkgversion) == 2)
-
-pkgname <-  pkgversion[[1]] %>%
-  stringr::str_split_fixed(pattern = "=", n = 2) %>%
-  .[,2]
-
-pkgversion <- pkgversion[[2]] %>%
-  stringr::str_split_fixed(pattern = "=", n = 2) %>%
-  .[,2] %>%
-  stringr::str_trim()
-
-stopifnot(pkgname == "rstudio-desktop-daily-bin")
+stopifnot(pkgbuild_name_version["pkgname"] == "rstudio-desktop-daily-bin")
 
 ## Get info from daily page
+## This part will vary for different rstudio versions
 
 page <- xml2::read_html(url_rstudio_daily)
 
@@ -46,43 +30,56 @@ daily_version <- daily_url %>%
   stringr::str_extract("(?<=amd64/rstudio-).*(?=-amd64\\.deb)") %>%
   stringr::str_trim()
 
-if (pkgversion == daily_version) {
-  message("Versions match. Not updating.")
-} else {
-  aur_git_pth <- paste(tempdir(), 'rstudio-desktop-daily-bin', sep = '/')
-  remote_url <- "ssh://aur@aur.archlinux.org/rstudio-desktop-daily-bin.git"
-  #remote_url <- "https://aur.archlinux.org/rstudio-desktop-daily-bin.git"
+## Create list of values
+update_info <- list(
+  deb_url = daily_url,
+  deb_name = fs::path_file(daily_url),
+  deb_version = daily_version,
 
-  if (fs::dir_exists(aur_git_pth)) {fs::dir_delete(aur_git_pth)}
+  # "https://aur.archlinux.org/rstudio-desktop-daily-bin.git"
+  aur_url = "ssh://aur@aur.archlinux.org/rstudio-desktop-daily-bin.git",
+  aur_version = pkgbuild_name_version$pkgversion,
 
-  git_credentials <- git2r::cred_ssh_key(
+  local_clone_pth = paste(tempdir(), 'rstudio-desktop-daily-bin', sep = '/'),
+
+  git_credentials = git2r::cred_ssh_key(
     publickey = ssh_path("id_rsa.pub"),
     privatekey = ssh_path("id_rsa"),
     passphrase = character(0)
   )
+)
 
+if (update_info$deb_version == update_info$aur_version) {
+  message("Versions match. Not updating.")
+} else {
+  #aur_git_pth <- paste(tempdir(), 'rstudio-desktop-daily-bin', sep = '/')
+  #remote_url <- "ssh://aur@aur.archlinux.org/rstudio-desktop-daily-bin.git"
+  #remote_url <- "https://aur.archlinux.org/rstudio-desktop-daily-bin.git"
 
-  git2r::clone(url = remote_url,
-               local_path = aur_git_pth,
-               credentials = git_credentials)
+  if (fs::dir_exists(update_info$local_clone_pth)) {fs::dir_delete(update_info$local_clone_pth)}
 
+  git2r::clone(url = update_info$aur_url,
+               local_path = update_info$local_clone_pth,
+               credentials = update_info$git_credentials)
 
-  clone_pkgbuild_pth <- paste(aur_git_pth, "PKGBUILD", sep = "/")
+  local_info <- list(
+    pkgbuild_pth = paste(update_info$local_clone_pth, "PKGBUILD", sep = "/"),
+    deb_pth = paste(update_info$local_clone_pth, update_info$deb_name, sep = "/")
+  )
 
-  clone_pkgbuild <- readLines(clone_pkgbuild_pth)
-
+  #clone_pkgbuild_pth <- paste(update_info$local_clone_pth, "PKGBUILD", sep = "/")
+  clone_pkgbuild <- readLines(local_info$pkgbuild_pth)
   pkgver_line <- clone_pkgbuild[[11]]
   sha256sum_line <- clone_pkgbuild[[25]]
 
   stopifnot(stringr::str_starts(pkgver_line, "pkgver="))
   stopifnot(stringr::str_starts(sha256sum_line, "sha256sums_x86_64="))
 
-  xenial_deb_pth <- paste(aur_git_pth, fs::path_file(daily_url), sep = "/")
+  #xenial_deb_pth <- paste(update_info$local_clone_pth, update_info$deb_name, sep = "/")
+  download.file(update_info$deb_url, destfile = local_info$deb_pth)
 
-  download.file(daily_url, destfile = xenial_deb_pth)
-
-  #sha256 <- digest::digest(xenial_deb_pth, algo = "sha256")
-  sha256 <- system2("sha256sum", xenial_deb_pth, stdout = TRUE) %>%
+  #sha256 <- digest::digest(local_info$deb_pth, algo = "sha256")
+  sha256 <- system2("sha256sum", local_info$deb_pth, stdout = TRUE) %>%
     stringr::str_split_fixed(" ", n = 2) %>%
     .[,1]
 
@@ -96,22 +93,23 @@ if (pkgversion == daily_version) {
   clone_pkgbuild[[11]] <- new_pkgver_line
   clone_pkgbuild[[25]] <- new_sha256sum_line
 
-  writeLines(text = clone_pkgbuild, con = clone_pkgbuild_pth)
+  writeLines(text = clone_pkgbuild, con = local_info$pkgbuild_pth)
 
   cwd <- getwd()
 
-  setwd(aur_git_pth)
-  system2("mksrcinfo", clone_pkgbuild_pth)
+  setwd(update_info$local_clone_pth)
+  system2("mksrcinfo", local_info$pkgbuild_pth)
   fs::dir_ls(all = TRUE)
 
-  git2r::status()
+  print(git2r::status())
 
   git2r::add(repo = '.', path = c("PKGBUILD", ".SRCINFO"))
-  git2r::commit(message = glue::glue("Auto update: v{daily_version}-2"))
+  git2r::commit(message = glue::glue("Semi-auto update: v{daily_version}-1"))
 
   git2r::status()
 
-  git2r::push(credentials = git_credentials)
+  git2r::push(credentials = update_info$git_credentials)
 
   setwd(cwd)
 }
+
