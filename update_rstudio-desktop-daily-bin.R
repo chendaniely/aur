@@ -110,6 +110,7 @@ if (update_info$deb_version == update_info$aur_version) {
 
   git2r::push(credentials = update_info$git_credentials)
 
+  print(git2r::status())
+
   setwd(cwd)
 }
-
