@@ -20,10 +20,10 @@ stopifnot(pkgbuild_name_version["pkgname"] == "rstudio-desktop-daily-bin")
 
 page <- xml2::read_html(url_rstudio_daily)
 
-xenial <- page %>%
-  rvest::html_nodes("#ql-rstudio-oss-xenial-x86_64")
+bionic <- page %>%
+  rvest::html_nodes("#ql-rstudio-oss-bionic-x86_64")
 
-daily_url <- xenial %>%
+daily_url <- bionic %>%
   rvest::html_attr('href')
 
 daily_version <- daily_url %>%
@@ -64,6 +64,7 @@ if (update_info$deb_version == update_info$aur_version) {
 
   local_info <- list(
     pkgbuild_pth = paste(update_info$local_clone_pth, "PKGBUILD", sep = "/"),
+    srcinfo_pth = paste(update_info$local_clone_pth, ".SRCINFO", sep = "/"),
     deb_pth = paste(update_info$local_clone_pth, update_info$deb_name, sep = "/")
   )
 
@@ -98,7 +99,10 @@ if (update_info$deb_version == update_info$aur_version) {
   cwd <- getwd()
 
   setwd(update_info$local_clone_pth)
-  system2("mksrcinfo", local_info$pkgbuild_pth)
+  print(update_info$local_clone_pth)
+  system2("makepkg",
+          args = c("--printsrcinfo", local_info$pkgbuild_pth),
+          stdout = local_info$srcinfo_pth)
   fs::dir_ls(all = TRUE)
 
   print(git2r::status())

@@ -83,10 +83,13 @@ update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version) {
 
 mksrcinfo <- function(local_clone_pth) {
   clone_pkgbuild_pth <- paste(local_clone_pth, "PKGBUILD", sep = "/")
+  clone_srcinfo_pth <- paste(local_clone_pth, ".SRCINFO", sep = "/")
   .old_wd <- getwd()
 
   setwd(local_clone_pth)
-  system2("mksrcinfo", clone_pkgbuild_pth)
+  system2("makepkg",
+          args = c("--printsrcinfo", clone_pkgbuild_pth),
+          stdout = clone_srcinfo_pth)
   print(fs::dir_ls(all = TRUE))
   print(git2r::status())
   print(system2("git",
