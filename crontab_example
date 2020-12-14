@@ -1,0 +1,3 @@
+# crontab -e
+0 14,17,22 * * * cd /home/dan/git/hub/aur && Rscript update_rstudio-desktop-daily-bin.R > /home/dan/cron-daily.log 2>&1
+0 16,19 * * * cd /home/dan/git/hub/aur && Rscript update_rstudio-desktop-preview-bin.R > /home/dan/cron-preview.log 2>&1
