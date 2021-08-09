@@ -9,15 +9,20 @@ get_pkgbuild_name_version <- function(url) {
 
   pkgbuild <- readLines(pth_pkgfile)
 
-  pkgversion <- pkgbuild[stringr::str_detect(pkgbuild, "pkgname=|pkgver=")]
+  pkgversion <- pkgbuild[stringr::str_detect(pkgbuild, "pkgname=|pkgver=|pkgver_url=")]
 
-  stopifnot(length(pkgversion) == 2)
+  stopifnot(length(pkgversion) == 3)
 
   pkgname <-  pkgversion[[1]] %>%
     stringr::str_split_fixed(pattern = "=", n = 2) %>%
     .[,2]
 
-  pkgversion <- pkgversion[[2]] %>%
+  pkgver_aur <- pkgversion[[2]] %>%
+    stringr::str_split_fixed(pattern = "=", n = 2) %>%
+    .[,2] %>%
+    stringr::str_trim()
+
+  pkgver_url <- pkgversion[[3]] %>%
     stringr::str_split_fixed(pattern = "=", n = 2) %>%
     .[,2] %>%
     stringr::str_trim()
@@ -25,7 +30,8 @@ get_pkgbuild_name_version <- function(url) {
   return(
     list(
       pkgname = pkgname,
-      pkgversion = pkgversion
+      pkgversion = pkgver_aur,
+      pkgver_url = pkgver_url
     )
   )
 }

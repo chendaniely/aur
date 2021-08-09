@@ -8,6 +8,11 @@ library(glue)
 
 source("helper.R")
 
+print(date())
+sleep_time <- runif(1, 0, 300)
+print(sleep_time)
+#Sys.sleep(sleep_time)
+
 url_rstudio_daily <- "https://dailies.rstudio.com/"
 url_pkgbuild <- "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=rstudio-desktop-daily-bin"
 
@@ -39,6 +44,7 @@ update_info <- list(
   # "https://aur.archlinux.org/rstudio-desktop-daily-bin.git"
   aur_url = "ssh://aur@aur.archlinux.org/rstudio-desktop-daily-bin.git",
   aur_version = pkgbuild_name_version$pkgversion,
+  aur_ver_url = pkgbuild_name_version$pkgver_url,
 
   local_clone_pth = paste(tempdir(), 'rstudio-desktop-daily-bin', sep = '/'),
 
@@ -49,7 +55,7 @@ update_info <- list(
   )
 )
 
-if (update_info$deb_version == update_info$aur_version) {
+if (update_info$deb_version == update_info$aur_ver_url) {
   message("Versions match. Not updating.")
 } else {
   #aur_git_pth <- paste(tempdir(), 'rstudio-desktop-daily-bin', sep = '/')
@@ -71,9 +77,11 @@ if (update_info$deb_version == update_info$aur_version) {
   #clone_pkgbuild_pth <- paste(update_info$local_clone_pth, "PKGBUILD", sep = "/")
   clone_pkgbuild <- readLines(local_info$pkgbuild_pth)
   pkgver_line <- clone_pkgbuild[[11]]
-  sha256sum_line <- clone_pkgbuild[[25]]
+  pkgver_url_line <- clone_pkgbuild[[12]]
+  sha256sum_line <- clone_pkgbuild[[26]]
 
   stopifnot(stringr::str_starts(pkgver_line, "pkgver="))
+  stopifnot(stringr::str_starts(pkgver_url_line, "pkgver_url="))
   stopifnot(stringr::str_starts(sha256sum_line, "sha256sums_x86_64="))
 
   #xenial_deb_pth <- paste(update_info$local_clone_pth, update_info$deb_name, sep = "/")
@@ -86,13 +94,18 @@ if (update_info$deb_version == update_info$aur_version) {
 
   new_pkgver_line <- stringr::str_replace(pkgver_line,
                                           pattern = "(?<=\\=).*",
-                                          replacement = daily_version)
+                                          replacement = stringr::str_replace(daily_version, "-", "."))
+  new_pkgver_url_line <- stringr::str_replace(pkgver_url_line,
+                                              pattern = "(?<=\\=).*", # everything after the "="
+                                              replacement = daily_version)
+
   new_sha256sum_line <- stringr::str_replace(sha256sum_line,
                                              pattern = "(?<=\\(').*(?='\\))", # between the round brackets
                                              replacement = sha256)
 
   clone_pkgbuild[[11]] <- new_pkgver_line
-  clone_pkgbuild[[25]] <- new_sha256sum_line
+  clone_pkgbuild[[12]] <- new_pkgver_url_line
+  clone_pkgbuild[[26]] <- new_sha256sum_line
 
   writeLines(text = clone_pkgbuild, con = local_info$pkgbuild_pth)
 
@@ -109,6 +122,7 @@ if (update_info$deb_version == update_info$aur_version) {
 
   git2r::add(repo = '.', path = c("PKGBUILD", ".SRCINFO"))
   git2r::commit(message = glue::glue("Semi-auto update: v{daily_version}-1"))
+  # git2r::commit(message = glue::glue("Auto CRON update: v{daily_version}-1"))
 
   git2r::status()
 
