@@ -3,6 +3,7 @@ library(glue)
 library(git2r)
 
 source("helper.R")
+print(date())
 
 pkgbuild_url <- "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=rstudio-desktop-preview-bin"
 pkgbuild_name_version <- get_pkgbuild_name_version(pkgbuild_url)
@@ -44,6 +45,7 @@ if (rstudio_desktop_preview_bionic$version == pkgbuild_name_version$pkgversion) 
 
   git_add_commit_push(aur_git_pth,
                       message = glue::glue("Semi-auto update: v{rstudio_desktop_preview_bionic$version}"),
+                      #message = glue::glue("Auto CRON update: v{rstudio_desktop_preview_bionic$version}"),
                       git_credentials,
                       push = TRUE)
 }
