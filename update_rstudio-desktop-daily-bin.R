@@ -6,12 +6,30 @@ library(fs)
 library(digest)
 library(glue)
 
+args <- commandArgs(trailingOnly = TRUE)
+print(args)
+
+if (length(args) == 0 | interactive()) {
+  message("No args passed: No sleep. No Git.")
+  sleep_bool = FALSE
+  git_bool = FALSE
+
+} else {
+  stopifnot(length(args) == 2)
+  sleep_bool = as.logical(args[[1]])
+  git_bool = as.logical(args[[2]])
+}
+
 source("helper.R")
 
 print(date())
-sleep_time <- runif(1, 0, 300)
-print(sleep_time)
-#Sys.sleep(sleep_time)
+
+if (sleep_bool) {
+  sleep_time <- runif(1, 0, 300)
+  print(sleep_time)
+  #Sys.sleep(sleep_time)
+}
+
 
 url_rstudio_daily <- "https://dailies.rstudio.com/"
 url_pkgbuild <- "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=rstudio-desktop-daily-bin"
@@ -118,17 +136,19 @@ if (update_info$deb_version == update_info$aur_ver_url) {
           stdout = local_info$srcinfo_pth)
   fs::dir_ls(all = TRUE)
 
-  print(git2r::status())
+  if (git_bool) {
+    print(git2r::status())
 
-  git2r::add(repo = '.', path = c("PKGBUILD", ".SRCINFO"))
-  git2r::commit(message = glue::glue("Semi-auto update: v{daily_version}-1"))
-  # git2r::commit(message = glue::glue("Auto CRON update: v{daily_version}-1"))
+    git2r::add(repo = '.', path = c("PKGBUILD", ".SRCINFO"))
+    git2r::commit(message = glue::glue("Semi-auto update: v{daily_version}-1"))
+    # git2r::commit(message = glue::glue("Auto CRON update: v{daily_version}-1"))
 
-  git2r::status()
+    git2r::status()
 
-  git2r::push(credentials = update_info$git_credentials)
+    git2r::push(credentials = update_info$git_credentials)
 
-  print(git2r::status())
+    print(git2r::status())
+  }
 
   setwd(cwd)
 }
