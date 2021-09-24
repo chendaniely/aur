@@ -60,9 +60,11 @@ update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version) {
   clone_pkgbuild <- readLines(clone_pkgbuild_pth)
 
   pkgver_line <- clone_pkgbuild[[11]]
-  sha256sum_line <- clone_pkgbuild[[25]]
+  pkgver_url_line <- clone_pkgbuild[[12]]
+  sha256sum_line <- clone_pkgbuild[[26]]
 
   stopifnot(stringr::str_starts(pkgver_line, "pkgver="))
+  stopifnot(stringr::str_starts(pkgver_url_line, "pkgver_url="))
   stopifnot(stringr::str_starts(sha256sum_line, "sha256sums_x86_64="))
 
   deb_pth <- paste(local_clone_pth, fs::path_file(deb_url), sep = "/")
@@ -77,12 +79,14 @@ update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version) {
   new_pkgver_line <- stringr::str_replace(pkgver_line,
                                           pattern = "(?<=\\=).*",
                                           replacement = deb_version)
+  new_pkgver_url_line <- stringr::str_replace(new_pkgver_line, "\\+", "%2B")
   new_sha256sum_line <- stringr::str_replace(sha256sum_line,
                                              pattern = "(?<=\\(').*(?='\\))", # between the round brackets
                                              replacement = sha256)
 
   clone_pkgbuild[[11]] <- new_pkgver_line
-  clone_pkgbuild[[25]] <- new_sha256sum_line
+  clone_pkgbuild[[12]] <- new_pkgver_url_line
+  clone_pkgbuild[[26]] <- new_sha256sum_line
 
   writeLines(text = clone_pkgbuild, con = clone_pkgbuild_pth)
 }
