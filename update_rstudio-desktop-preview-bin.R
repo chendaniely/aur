@@ -2,6 +2,20 @@ library(jsonlite)
 library(glue)
 library(git2r)
 
+args <- commandArgs(trailingOnly = TRUE)
+print(args)
+
+if (length(args) == 0 | interactive()) {
+  message("No args passed: No sleep. No Git.")
+  sleep_bool = FALSE
+  git_bool = FALSE
+
+} else {
+  stopifnot(length(args) == 2)
+  sleep_bool = as.logical(args[[1]])
+  git_bool = as.logical(args[[2]])
+}
+
 source("helper.R")
 print(date())
 
@@ -43,9 +57,11 @@ if (rstudio_desktop_preview_bionic$version == pkgbuild_name_version$pkgversion) 
 
   mksrcinfo(aur_git_pth)
 
-  git_add_commit_push(aur_git_pth,
-                      message = glue::glue("Semi-auto update: v{rstudio_desktop_preview_bionic$version}"),
-                      #message = glue::glue("Auto CRON update: v{rstudio_desktop_preview_bionic$version}"),
-                      git_credentials,
-                      push = TRUE)
+  if (git_bool) {
+    git_add_commit_push(aur_git_pth,
+                        message = glue::glue("Semi-auto update: v{rstudio_desktop_preview_bionic$version}"),
+                        #message = glue::glue("Auto CRON update: v{rstudio_desktop_preview_bionic$version}"),
+                        git_credentials,
+                        push = TRUE)
+  }
 }
