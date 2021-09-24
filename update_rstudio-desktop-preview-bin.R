@@ -59,8 +59,8 @@ if (rstudio_desktop_preview_bionic$version == pkgbuild_name_version$pkgversion) 
 
   if (git_bool) {
     git_add_commit_push(aur_git_pth,
-                        message = glue::glue("Semi-auto update: v{rstudio_desktop_preview_bionic$version}"),
-                        #message = glue::glue("Auto CRON update: v{rstudio_desktop_preview_bionic$version}"),
+                        #message = glue::glue("Semi-auto update: v{rstudio_desktop_preview_bionic$version}"),
+                        message = glue::glue("Auto CRON update: v{rstudio_desktop_preview_bionic$version}"),
                         git_credentials,
                         push = TRUE)
   }
