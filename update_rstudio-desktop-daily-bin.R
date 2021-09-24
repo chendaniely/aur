@@ -141,8 +141,8 @@ if (update_info$deb_version == update_info$aur_ver_url) {
     print(git2r::status())
 
     git2r::add(repo = '.', path = c("PKGBUILD", ".SRCINFO"))
-    git2r::commit(message = glue::glue("Semi-auto update: v{daily_version}-1"))
-    # git2r::commit(message = glue::glue("Auto CRON update: v{daily_version}-1"))
+    git2r::commit(message = glue::glue("Semi-auto update: v{stringr::str_replace_all(daily_version, '%2B', '+')}-1"))
+    # git2r::commit(message = glue::glue("Auto CRON update: v{stringr::str_replace_all(daily_version, '%2B', '+')}-1"))
 
     git2r::status()
 
