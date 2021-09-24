@@ -112,7 +112,8 @@ if (update_info$deb_version == update_info$aur_ver_url) {
 
   new_pkgver_line <- stringr::str_replace(pkgver_line,
                                           pattern = "(?<=\\=).*",
-                                          replacement = stringr::str_replace(daily_version, "-", "."))
+                                          replacement = stringr::str_replace(daily_version, "-", ".")) %>%
+    stringr::str_replace_all("%2B", "+")
   new_pkgver_url_line <- stringr::str_replace(pkgver_url_line,
                                               pattern = "(?<=\\=).*", # everything after the "="
                                               replacement = daily_version)

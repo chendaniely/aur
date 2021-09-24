@@ -20,8 +20,7 @@ get_pkgbuild_name_version <- function(url) {
   pkgver_aur <- pkgversion[[2]] %>%
     stringr::str_split_fixed(pattern = "=", n = 2) %>%
     .[,2] %>%
-    stringr::str_trim() %>%
-    stringr::str_replace_all("%2B", "+")
+    stringr::str_trim()
 
   pkgver_url <- pkgversion[[3]] %>%
     stringr::str_split_fixed(pattern = "=", n = 2) %>%
