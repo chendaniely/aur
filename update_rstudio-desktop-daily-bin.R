@@ -157,4 +157,6 @@ if (update_info$deb_version == update_info$aur_ver_url) {
   }
 
   setwd(cwd)
+
+  fs::dir_delete(update_info$local_clone_pth)
 }
