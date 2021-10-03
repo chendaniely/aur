@@ -151,7 +151,9 @@ if (update_info$deb_version == update_info$aur_ver_url) {
 
     git2r::status()
 
-    git2r::push(credentials = update_info$git_credentials)
+    system(glue::glue("git push origin master"))
+
+    #git2r::push(credentials = update_info$git_credentials)
 
     print(git2r::status())
   }
