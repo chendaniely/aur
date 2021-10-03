@@ -42,13 +42,20 @@ clone_from_aur <- function(remote_url, save_pth, git_credentials) {
   #remote_url <- "ssh://aur@aur.archlinux.org/rstudio-desktop-daily-bin.git"
   #remote_url <- "https://aur.archlinux.org/rstudio-desktop-daily-bin.git"
 
-  if (fs::dir_exists(save_pth)) {fs::dir_delete(save_pth)}
+  #if (fs::dir_exists(save_pth)) {fs::dir_delete(save_pth)}
+
+  if (fs::dir_exists(save_pth)) {
+    fs::dir_delete(save_pth)
+    fs::dir_create(save_pth)
+  }
+
+  system(glue::glue("git clone {remote_url} {save_pth}"))
 
   #git_credentials <- git_credentials
 
-  git2r::clone(url = remote_url,
-               local_path = save_pth,
-               credentials = git_credentials)
+  # git2r::clone(url = remote_url,
+  #              local_path = save_pth,
+  #              credentials = git_credentials)
 
 }
 
@@ -121,7 +128,10 @@ git_add_commit_push <- function(local_clone_path,
 
   print(git2r::status())
 
-  if (push) {git2r::push(credentials = git_credentials)}
+  if (push) {
+    system(glue::glue("git push origin master"))
+    #git2r::push(credentials = git_credentials)
+  }
 
   setwd(.old_wd)
 }

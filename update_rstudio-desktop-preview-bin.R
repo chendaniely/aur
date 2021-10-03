@@ -64,4 +64,6 @@ if (rstudio_desktop_preview_bionic$version == pkgbuild_name_version$pkgversion) 
                         git_credentials,
                         push = TRUE)
   }
+
+  fs::dir_delete(aur_git_pth)
 }
