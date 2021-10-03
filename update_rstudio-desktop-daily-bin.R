@@ -80,11 +80,16 @@ if (update_info$deb_version == update_info$aur_ver_url) {
   #remote_url <- "ssh://aur@aur.archlinux.org/rstudio-desktop-daily-bin.git"
   #remote_url <- "https://aur.archlinux.org/rstudio-desktop-daily-bin.git"
 
-  if (fs::dir_exists(update_info$local_clone_pth)) {fs::dir_delete(update_info$local_clone_pth)}
+  if (fs::dir_exists(update_info$local_clone_pth)) {
+    fs::dir_delete(update_info$local_clone_pth)
+    fs::dir_create(update_info$local_clone_pth)
+  }
 
-  git2r::clone(url = update_info$aur_url,
-               local_path = update_info$local_clone_pth,
-               credentials = update_info$git_credentials)
+  system(glue::glue("git clone {update_info$aur_url} {update_info$local_clone_pth}"))
+
+  # git2r::clone(url = update_info$aur_url,
+  #              local_path = update_info$local_clone_pth,
+  #              credentials = update_info$git_credentials)
 
   local_info <- list(
     pkgbuild_pth = paste(update_info$local_clone_pth, "PKGBUILD", sep = "/"),
