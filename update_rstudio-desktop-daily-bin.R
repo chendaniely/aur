@@ -44,7 +44,7 @@ stopifnot(pkgbuild_name_version["pkgname"] == "rstudio-desktop-daily-bin")
 page <- xml2::read_html(url_rstudio_daily)
 
 bionic <- page %>%
-  rvest::html_nodes("#ql-rstudio-oss-bionic-x86_64")
+  rvest::html_nodes(".platform-ubuntu-18\\+")
 
 daily_url <- bionic %>%
   rvest::html_attr('href')
