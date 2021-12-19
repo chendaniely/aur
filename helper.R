@@ -86,7 +86,10 @@ update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version) {
   new_pkgver_line <- stringr::str_replace(pkgver_line,
                                           pattern = "(?<=\\=).*",
                                           replacement = deb_version)
-  new_pkgver_url_line <- stringr::str_replace(new_pkgver_line, "\\+", "%2B")
+  new_pkgver_url_line <- stringr::str_replace(pkgver_url_line,
+                                              pattern = "(?<=\\=).*",
+                                              replacement = deb_version) %>%
+    stringr::str_replace(pattern = "\\+", replacement = "-")
   new_sha256sum_line <- stringr::str_replace(sha256sum_line,
                                              pattern = "(?<=\\(').*(?='\\))", # between the round brackets
                                              replacement = sha256)
