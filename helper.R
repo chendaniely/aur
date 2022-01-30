@@ -61,14 +61,21 @@ clone_from_aur <- function(remote_url, save_pth, git_credentials) {
 
 # https://s3.amazonaws.com/rstudio-ide-build/desktop/bionic/amd64/rstudio-1.3.1081-amd64.deb
 
-update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version) {
+update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version,
+                                 pkgver_line_num=11L,
+                                 pkgver_url_line_num=12L,
+                                 sha256sum_line_num=26L) {
+  #local_clone_pth <- aur_git_pth
+  #deb_url <- rstudio_desktop_preview_bionic$s3_url
+  #deb_version <- rstudio_desktop_preview_bionic$version
+
   clone_pkgbuild_pth <- paste(local_clone_pth, "PKGBUILD", sep = "/")
 
   clone_pkgbuild <- readLines(clone_pkgbuild_pth)
 
-  pkgver_line <- clone_pkgbuild[[11]]
-  pkgver_url_line <- clone_pkgbuild[[12]]
-  sha256sum_line <- clone_pkgbuild[[26]]
+  pkgver_line <- clone_pkgbuild[[pkgver_line_num]]
+  pkgver_url_line <- clone_pkgbuild[[pkgver_url_line_num]]
+  sha256sum_line <- clone_pkgbuild[[sha256sum_line_num]]
 
   stopifnot(stringr::str_starts(pkgver_line, "pkgver="))
   stopifnot(stringr::str_starts(pkgver_url_line, "pkgver_url="))
@@ -94,9 +101,9 @@ update_pkgbuild_file <- function(local_clone_pth, deb_url, deb_version) {
                                              pattern = "(?<=\\(').*(?='\\))", # between the round brackets
                                              replacement = sha256)
 
-  clone_pkgbuild[[11]] <- new_pkgver_line
-  clone_pkgbuild[[12]] <- new_pkgver_url_line
-  clone_pkgbuild[[26]] <- new_sha256sum_line
+  clone_pkgbuild[[pkgver_line_num]] <- new_pkgver_line
+  clone_pkgbuild[[pkgver_url_line_num]] <- new_pkgver_url_line
+  clone_pkgbuild[[sha256sum_line_num]] <- new_sha256sum_line
 
   writeLines(text = clone_pkgbuild, con = clone_pkgbuild_pth)
 }
