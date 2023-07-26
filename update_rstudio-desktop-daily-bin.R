@@ -43,10 +43,10 @@ stopifnot(pkgbuild_name_version["pkgname"] == "rstudio-desktop-daily-bin")
 
 page <- xml2::read_html(url_rstudio_daily)
 
-bionic <- page %>%
-  rvest::html_nodes(".platform-ubuntu-18\\+")
+jammy <- page %>%
+  rvest::html_nodes(".platform-ubuntu-22")
 
-daily_url <- bionic %>%
+daily_url <- jammy %>%
   rvest::html_attr('href')
 
 daily_version <- daily_url %>%
@@ -101,7 +101,7 @@ if (update_info$deb_version == update_info$aur_ver_url) {
   clone_pkgbuild <- readLines(local_info$pkgbuild_pth)
   pkgver_line <- clone_pkgbuild[[11]]
   pkgver_url_line <- clone_pkgbuild[[12]]
-  sha256sum_line <- clone_pkgbuild[[26]]
+  sha256sum_line <- clone_pkgbuild[[28]]
 
   stopifnot(stringr::str_starts(pkgver_line, "pkgver="))
   stopifnot(stringr::str_starts(pkgver_url_line, "pkgver_url="))
@@ -130,7 +130,7 @@ if (update_info$deb_version == update_info$aur_ver_url) {
 
   clone_pkgbuild[[11]] <- new_pkgver_line
   clone_pkgbuild[[12]] <- new_pkgver_url_line
-  clone_pkgbuild[[26]] <- new_sha256sum_line
+  clone_pkgbuild[[28]] <- new_sha256sum_line
 
   writeLines(text = clone_pkgbuild, con = local_info$pkgbuild_pth)
 
