@@ -1,3 +1,8 @@
+#
+# Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE # no sleep; yes git
+#
+#
+
 library(rvest)
 library(yaml)
 library(stringr)
