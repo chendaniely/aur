@@ -158,9 +158,9 @@ if (update_info$deb_version == update_info$aur_ver_url) {
     git2r::status()
 
     # diff before pushing
-    diff_1 <- git2r::diff(repo)
-    summary(diff_1)
-    cat(git2r::diff(repo, as_char=TRUE))
+    diff_1 <- git2r::diff(x = '.')
+    print(summary(diff_1))
+    print(git2r::diff(x = '.', as_char=TRUE))
 
     system(glue::glue("git push origin master"))
 
