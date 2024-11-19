@@ -11,6 +11,8 @@ library(fs)
 library(digest)
 library(glue)
 
+options(timeout=180)
+
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
 
@@ -48,10 +50,10 @@ stopifnot(pkgbuild_name_version["pkgname"] == "rstudio-desktop-daily-bin")
 
 page <- xml2::read_html(url_rstudio_daily)
 
-jammy <- page %>%
-  rvest::html_nodes(".platform-ubuntu-22")
+ubuntu <- page %>%
+  rvest::html_node(xpath = "/html/body/main/div/div[2]/div[3]/a")
 
-daily_url <- jammy %>%
+daily_url <- ubuntu %>%
   rvest::html_attr('href')
 
 daily_version <- daily_url %>%
