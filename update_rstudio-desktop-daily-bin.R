@@ -74,8 +74,8 @@ update_info <- list(
   local_clone_pth = paste(tempdir(), 'rstudio-desktop-daily-bin', sep = '/'),
 
   git_credentials = git2r::cred_ssh_key(
-    publickey = ssh_path("id_rsa.pub"),
-    privatekey = ssh_path("id_rsa"),
+    publickey = ssh_path("id_ed25519.pub"),
+    privatekey = ssh_path("id_ed25519"),
     passphrase = character(0)
   )
 )
