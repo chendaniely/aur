@@ -15,7 +15,7 @@ jobs:
       - name: Install system dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm r base-devel git openssh libgit2 libxml2 curl
+          pacman -S --noconfirm r base-devel git openssh libgit2 libxml2 curl libuv
 
       - name: Create non-root build user
         # makepkg refuses to run as root, so we need a regular user
