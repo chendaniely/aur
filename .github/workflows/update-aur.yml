@@ -1,0 +1,59 @@
+name: Update AUR Packages
+
+on:
+  schedule:
+    - cron: '0 6,18 * * *'  # 6am and 6pm UTC
+  workflow_dispatch:          # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest  # needed for makepkg
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm r base-devel git openssh libgit2 libxml2 curl
+
+      - name: Create non-root build user
+        # makepkg refuses to run as root, so we need a regular user
+        run: useradd -m -U builder
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install R packages
+        run: |
+          Rscript -e "install.packages(
+            c('rvest', 'yaml', 'git2r', 'fs', 'digest', 'glue',
+              'stringr', 'magrittr', 'jsonlite', 'credentials'),
+            repos = 'https://cran.rstudio.com'
+          )"
+
+      - name: Configure SSH key for AUR
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          AUR_SSH_PUBLIC_KEY: ${{ secrets.AUR_SSH_PUBLIC_KEY }}
+        run: |
+          mkdir -p /home/builder/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > /home/builder/.ssh/id_ed25519
+          printf '%s\n' "$AUR_SSH_PUBLIC_KEY"  > /home/builder/.ssh/id_ed25519.pub
+          chmod 600 /home/builder/.ssh/id_ed25519
+          chmod 644 /home/builder/.ssh/id_ed25519.pub
+          ssh-keyscan aur.archlinux.org >> /home/builder/.ssh/known_hosts
+          chown -R builder:builder /home/builder/.ssh
+
+      - name: Configure git identity for AUR commits
+        env:
+          GIT_USER_NAME: ${{ vars.AUR_GIT_USER_NAME }}
+          GIT_USER_EMAIL: ${{ vars.AUR_GIT_USER_EMAIL }}
+        run: |
+          su -s /bin/sh builder -c "git config --global user.name  '$GIT_USER_NAME'"
+          su -s /bin/sh builder -c "git config --global user.email '$GIT_USER_EMAIL'"
+
+      - name: Run update script
+        run: |
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          su -s /bin/sh builder -c "cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
