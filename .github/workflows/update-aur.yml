@@ -24,13 +24,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: /home/builder/R
+          key: r-packages-${{ hashFiles('**/DESCRIPTION') }}
+          restore-keys: |
+            r-packages-
+            
       - name: Install R packages
         run: |
-          Rscript -e "install.packages(
-            c('rvest', 'yaml', 'git2r', 'fs', 'digest', 'glue',
-              'stringr', 'magrittr', 'jsonlite', 'credentials'),
-            repos = 'https://cran.rstudio.com'
-          )"
+          mkdir -p /home/builder/R
+          chown -R builder:builder /home/builder/R
+      
+          su -m -s /bin/sh builder -c "
+            Rscript -e \"
+              .libPaths('/home/builder/R');
+              install.packages(
+                c('rvest','yaml','git2r','fs','digest','glue',
+                  'stringr','magrittr','jsonlite','credentials'),
+                repos='https://cran.rstudio.com'
+              )
+            \"
+          "
 
       - name: Configure SSH key for AUR
         env:
