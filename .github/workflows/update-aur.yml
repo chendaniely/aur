@@ -45,15 +45,20 @@ jobs:
           ssh-keyscan aur.archlinux.org >> /home/builder/.ssh/known_hosts
           chown -R builder:builder /home/builder/.ssh
 
-      - name: Configure git identity for AUR commits
-        env:
-          GIT_USER_NAME: ${{ vars.AUR_GIT_USER_NAME }}
-          GIT_USER_EMAIL: ${{ vars.AUR_GIT_USER_EMAIL }}
-        run: |
-          su -s /bin/sh builder -c "git config --global user.name  '$GIT_USER_NAME'"
-          su -s /bin/sh builder -c "git config --global user.email '$GIT_USER_EMAIL'"
-
+      #- name: Configure git identity for AUR commits
+      #  env:
+      #    GIT_USER_NAME: ${{ vars.AUR_GIT_USER_NAME }}
+      #    GIT_USER_EMAIL: ${{ vars.AUR_GIT_USER_EMAIL }}
+      #  run: |
+      #    su -s /bin/sh builder -c "git config --global user.name  '$GIT_USER_NAME'"
+      #    su -s /bin/sh builder -c "git config --global user.email '$GIT_USER_EMAIL'"
+      
       - name: Run update script
+        env:
+          GIT_AUTHOR_NAME: ${{ vars.AUR_GIT_USER_NAME }}
+          GIT_AUTHOR_EMAIL: ${{ vars.AUR_GIT_USER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ vars.AUR_GIT_USER_NAME }}
+          GIT_COMMITTER_EMAIL: ${{ vars.AUR_GIT_USER_EMAIL }}
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           su -s /bin/sh builder -c "cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
