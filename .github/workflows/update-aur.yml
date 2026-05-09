@@ -77,4 +77,4 @@ jobs:
           GIT_COMMITTER_EMAIL: ${{ secrets.AUR_GIT_USER_EMAIL }}
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
-          su -s /bin/sh builder -c "cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
+          su -m -s /bin/sh builder -c "cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
