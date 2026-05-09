@@ -75,7 +75,7 @@ jobs:
       #  run: |
       #    su -s /bin/sh builder -c "git config --global user.name  '$GIT_USER_NAME'"
       #    su -s /bin/sh builder -c "git config --global user.email '$GIT_USER_EMAIL'"
-      
+
       - name: Run update script
         env:
           GIT_AUTHOR_NAME: ${{ secrets.AUR_GIT_USER_NAME }}
@@ -83,12 +83,13 @@ jobs:
           GIT_COMMITTER_NAME: ${{ secrets.AUR_GIT_USER_NAME }}
           GIT_COMMITTER_EMAIL: ${{ secrets.AUR_GIT_USER_EMAIL }}
           R_LIBS_USER: /home/builder/R
+          HOME: /home/builder
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           su -m -s /bin/sh builder -c "
-            export R_LIBS_USER
+            export HOME R_LIBS_USER
             export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
-            git config --global user.name  '$GIT_AUTHOR_NAME'
-            git config --global user.email '$GIT_AUTHOR_EMAIL'
-            cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE
+            git config --global user.name  \"\$GIT_AUTHOR_NAME\"
+            git config --global user.email \"\$GIT_AUTHOR_EMAIL\"
+            cd \"\$GITHUB_WORKSPACE\" && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE
           "
