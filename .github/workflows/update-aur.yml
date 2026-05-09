@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 6,18 * * *'  # 6am and 6pm UTC
   workflow_dispatch:          # allow manual trigger from GitHub UI
+  push:
+    paths:
+      - .github/workflows/update-aur.yml
 
 jobs:
   update:
@@ -75,6 +78,7 @@ jobs:
           GIT_AUTHOR_EMAIL: ${{ secrets.AUR_GIT_USER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.AUR_GIT_USER_NAME }}
           GIT_COMMITTER_EMAIL: ${{ secrets.AUR_GIT_USER_EMAIL }}
+          R_LIBS_USER: /home/builder/R
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
-          su -m -s /bin/sh builder -c "cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
+          su -m -s /bin/sh builder -c "export R_LIBS_USER && cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
