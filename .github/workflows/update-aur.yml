@@ -34,12 +34,16 @@ jobs:
           key: r-packages-${{ hashFiles('**/DESCRIPTION') }}
           restore-keys: |
             r-packages-
-            
-      - name: Install R packages
+
+      - name: Prepare R library directory
         run: |
           mkdir -p /home/builder/R
           chown -R builder:builder /home/builder/R
-      
+
+      - name: Install R packages
+        env:
+          R_LIBS_USER: /home/builder/R
+        run: |
           su -m -s /bin/sh builder -c "
             Rscript -e \"
               .libPaths('/home/builder/R');
@@ -81,4 +85,10 @@ jobs:
           R_LIBS_USER: /home/builder/R
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
-          su -m -s /bin/sh builder -c "export R_LIBS_USER && cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE"
+          su -m -s /bin/sh builder -c "
+            export R_LIBS_USER
+            export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+            git config --global user.name  '$GIT_AUTHOR_NAME'
+            git config --global user.email '$GIT_AUTHOR_EMAIL'
+            cd '$GITHUB_WORKSPACE' && Rscript update_rstudio-desktop-daily-bin.R FALSE TRUE
+          "
