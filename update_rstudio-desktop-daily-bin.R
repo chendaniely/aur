@@ -126,7 +126,7 @@ if (update_info$deb_version == update_info$aur_ver_url) {
     print(git2r::status())
 
     git2r::add(repo = '.', path = c("PKGBUILD", ".SRCINFO"))
-    git2r::commit(message = glue::glue("Semi-auto update: v{stringr::str_replace_all(daily_version, '%2B', '+')}-1"))
+    git2r::commit(message = glue::glue("Github Actions update: v{stringr::str_replace_all(daily_version, '%2B', '+')}-1"))
 
     system(glue::glue("git push origin master"))
 
